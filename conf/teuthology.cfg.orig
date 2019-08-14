@@ -1,0 +1,19 @@
+---
+author: "{{ lookup('env', 'USER') }}"
+#teuthology_repo: https://github.com/ceph/teuthology.git
+#teuthology_repo: https://github.com/suse/teuthology.git
+#teuthology_repo: https://github.com/kshtsk/teuthology.git
+
+#paddles_repo: https://github.com/kshtsk/paddles.git
+
+#pulpito_repo: https://github.com/kshtsk/pulpito.git
+
+#ceph_repo: https://github.com/ceph/ceph.git
+
+#teuthology_branch: master
+#teuthology_branch: suse-upstream
+
+#paddles_branch: master
+#paddles_branch: wip-run-name
+
+#pulpito_branch: master

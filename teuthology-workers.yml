@@ -1,0 +1,8 @@
+---
+- hosts: teuthology
+  strategy: free
+  roles:
+    - teuthology_workers
+    #- nameserver
+    #- nsupdate_web
+  become: true

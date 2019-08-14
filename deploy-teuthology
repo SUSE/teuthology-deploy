@@ -1,0 +1,211 @@
+#!/bin/bash
+
+TEMP=$(getopt -o h --long "help,site:,name:,cloud:,debug,build,force,nodes,version,workers:,targets:,conf:,rebuild,cleanup,setupns,ns" \
+     -n 'deploy-teuthology' -- "$@")
+
+if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
+
+NAME=$USER-mainstream
+REBUILD=false
+CLEANUP=false
+SETUPNS=false
+BUILD=false
+NODES=false
+FORCE=true
+VERBOSE=-v
+WORKERS=10
+TARGETS=20
+TEUTH_CONF=${TEUTH_CONF:-"conf/teuthology.cfg"}
+TEUTH_VARS=${TEUTH_VARS:-"teuthology-vars.yml"}
+TEUTH_IMAGE=${TEUTH_IMAGE:-"teuthology-opensuse-15.1-x86_64"}
+# use only with disable_root=false because of ansible issue with paddles and other roles
+# which do not allow use REMOTE_USER for ssh, or there it is overriden in the middle
+LOGIN_USER=root
+
+function yj () {
+    python3 -c "import json, yaml, sys ; d = yaml.safe_load(sys.stdin) ; json.dump(d,sys.stdout, indent=2)"
+}
+function jy() {
+    python3 -c "import json, yaml, sys ; d = json.load(sys.stdin) ; yaml.safe_dump(d,sys.stdout, default_flow_style=False)"
+}
+# Note the quotes around TEMP': they are essential!
+eval set -- "$TEMP"
+while true ; do
+    case "$1" in
+        -h|--help) usage ;;    # does not return
+        --ns) SETUPNS=true ; shift ;;
+        --site) SITE="$2" ; shift ; shift ;;
+        --name) NAME="$2" ; shift ; shift ;;
+        --conf) TEUTH_CONF="$2" ; shift ; shift ;;
+        --cloud) TARGET_CLOUD="$2" ; shift ; shift ;;
+        --nodes) NODES=true ; shift ;;
+        --debug) DEBUG=true ; shift ;;
+        --build) BUILD=true ; shift ;;
+        --force) FORCE=true ; shift ;;
+        --workers) WORKERS="$2" ; shift ; shift ;;
+        --targets) TARGETS="$2" ; shift ; shift ;;
+        --rebuild) REBUILD=true ; shift ;;
+        --cleanup) CLEANUP=true ; shift ;;
+        --setupns) SETUPNS=true ; shift ;;
+        --version) version ;;  # does not return
+        --) shift ; break ;;
+        *) echo "Internal error" ; exit 1 ;;
+    esac
+done
+
+TARGET_CLOUD=${TARGET_CLOUD:-"$OS_CLOUD"}
+
+export OS_CLOUD=$TARGET_CLOUD
+STATE_PATH=$PWD/.state/$OS_CLOUD/$NAME
+mkdir -p $STATE_PATH
+TERRAFORM_STATE=$STATE_PATH/terraform.tfstate
+
+TEUTH_INVENTORY=${TEUTH_INVENTORY:-"$STATE_PATH/teuthology-inventory"}
+TEUTH_IDENTITY=${TEUTH_IDENTITY:-"$HOME/.ssh/sa"}
+TEUTH_KEYNAME=${TEUTH_KEYNAME:-"storage-automation"}
+LIBCLOUD_YAML=${LIBCLOUD_YAML:-"libcloud/$TARGET_CLOUD.cfg"}
+
+if $DEBUG ; then
+VERBOSE=-vvv
+fi
+if $NODES ; then
+python dns.py $OS_CLOUD
+fi
+
+terraform init terraform/teuthology/$OS_CLOUD
+if $REBUILD || $CLEANUP ; then
+terraform destroy -force -state=$TERRAFORM_STATE
+fi
+
+export conf_ok=true
+for i in $TEUTH_CONF $LIBCLOUD_YAML ; do
+[ -f $i ] || {
+  echo "ERROR: config file '$i' not found, please copy it from $i.orig"
+  echo "       and make corresponding changes"
+  export conf_ok=false
+}
+done
+
+if $conf_ok ; then
+   echo "Basic config files presence test passed"
+else
+   echo "FATAL: Missing one or more config files"
+   exit 1
+fi
+
+if $REBUILD ; then
+terraform apply -state=$TERRAFORM_STATE -auto-approve \
+	-var os_image=$TEUTH_IMAGE \
+	-var os_keyname=$TEUTH_KEYNAME \
+	-var target_id=$NAME \
+	terraform/teuthology/$OS_CLOUD || exit 1
+terraform output -state=$TERRAFORM_STATE ansible > $TEUTH_INVENTORY
+
+target=$(terraform output -state=$TERRAFORM_STATE ip)
+private_addr=$(terraform output -state=$TERRAFORM_STATE private-ip)
+
+function wait_if(){
+    local max_sec=${1}
+    local int_sec=${2}
+    shift
+    shift
+    local start_sec=$(date +%s)
+    while : ; do
+        $@ && break
+        local cur_sec=$(date +%s)
+        local past_sec=$(( $cur_sec - $start_sec ))
+        (( $past_sec >= $max_sec )) && {
+            echo $past_sec past of $max_sec
+            exit 1
+        }
+        echo Waiting $int_sec seconds
+        sleep $int_sec
+    done
+}
+
+sshopts="-i $TEUTH_IDENTITY -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR"
+wait_if 600 30 ssh $sshopts $LOGIN_USER@$target uptime
+echo Node $target is up and running
+echo Waiting until user-data script completed
+wait_if 480 60 ssh $sshopts \
+        $LOGIN_USER@$target grep ^TEUTHOLOGYBOOT /var/log/cloud-init-output.log
+
+ssh $sshopts $LOGIN_USER@$target ps aux | grep cloud-init
+
+fi
+
+if $REBUILD || $BUILD ; then
+
+function make_dns_key() {
+    local zone_name=${1:-"nbg.suse.de"}
+    local keys_path=${2:-"$STATE_PATH"}
+    echo "Create dnssec keys for $zone_name" > /dev/stderr
+    KEY_NAME=$(sudo dnssec-keygen -r /dev/urandom -a HMAC-MD5 -b  512 -n HOST $zone_name)
+    sudo chown $USER: $KEY_NAME*
+    mv $KEY_NAME.* $keys_path
+    echo $KEY_NAME
+}
+
+
+cat > $STATE_PATH/teuthology_server.yml << END
+teuthology_name: $NAME
+teuthology_addr: $private_addr
+nameserver_addr: $private_addr
+machine_type: $OS_CLOUD
+secrets_path: $PWD/secrets
+log_host: $target
+workers: $WORKERS
+targets: $TARGETS
+END
+
+if $SETUPNS ; then
+ZONE_DOMAIN=${OS_CLOUD}.suse.de
+DNSKEY_NAME=$(make_dns_key $ZONE_DOMAIN $PWD/secrets)
+PUBKEY_NAME=${DNSKEY_NAME}.key
+PRIKEY_NAME=${DNSKEY_NAME}.private
+ZONE_SECRET=$(cat $PWD/secrets/$PRIKEY_NAME | yj | jq -r .Key)
+cat >> $STATE_PATH/teuthology_server.yml << END
+#keys_dir: $STATE_PATH
+nsupdate_web_server: "$private_addr"
+lab_domain:  $ZONE_DOMAIN
+zone_name:   $ZONE_DOMAIN
+zone_domain: $ZONE_DOMAIN
+zone_secret: $ZONE_SECRET
+pubkey_name: $PUBKEY_NAME
+prikey_name: $PRIKEY_NAME
+END
+scp $sshopts $PWD/secrets/${DNSKEY_NAME}* $LOGIN_USER@$target:
+
+ANSIBLE_CONFIG=teuthology-ansible.cfg \
+    ansible-playbook $VERBOSE \
+        --key-file $TEUTH_IDENTITY \
+        --user $LOGIN_USER \
+        -i $TEUTH_INVENTORY \
+        -e @$STATE_PATH/teuthology_server.yml \
+        -e @teuthology-defaults.yml \
+        -e @$TEUTH_CONF \
+        -e @$TEUTH_VARS \
+            teuthology-suse-ns.yml
+else
+ZONE_DOMAIN=ses.suse.de
+cat >> $STATE_PATH/teuthology_server.yml << END
+#keys_dir: $STATE_PATH
+#nsupdate_web_server: "$private_addr"
+lab_domain:  $ZONE_DOMAIN
+zone_name:   $ZONE_DOMAIN
+zone_domain: $ZONE_DOMAIN
+END
+
+ANSIBLE_CONFIG=teuthology-ansible.cfg \
+    ansible-playbook $VERBOSE \
+        --key-file $TEUTH_IDENTITY \
+        --user $LOGIN_USER \
+        -i $TEUTH_INVENTORY \
+        -e @$STATE_PATH/teuthology_server.yml \
+        -e @teuthology-defaults.yml \
+        -e @$TEUTH_CONF \
+        -e @$TEUTH_VARS \
+            teuthology-suse.yml
+fi # SETUPNS
+
+fi

@@ -1,0 +1,12 @@
+---
+teuthology_repo: https://github.com/kshtsk/teuthology.git
+#teuthology_repo: https://github.com/ceph/teuthology.git
+paddles_repo: https://github.com/kshtsk/paddles.git
+pulpito_repo: https://github.com/kshtsk/pulpito.git
+ceph_repo: https://github.com/ceph/ceph.git
+
+teuthology_branch: suse-upstream
+#teuthology_branch: master
+paddles_branch: wip-run-name
+#paddles_branch: master
+pulpito_branch: master

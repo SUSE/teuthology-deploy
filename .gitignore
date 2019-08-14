@@ -1,0 +1,14 @@
+*.retry
+*.tfstate*
+.terraform
+.state
+libcloud/*.cfg
+openstack/userdata-*.yaml
+teuthology-inventory
+ceph-cm-ansible
+roles/paddles_nodes/files/populate_nodes.psql
+roles/paddles_nodes/files/etc/dnsmasq.d
+roles/paddles_nodes/files/etc/dnsmasq.d/teuthology
+
+secrets/K*.key
+secrets/K*.private
