@@ -156,6 +156,7 @@ secrets_path: $PWD/secrets
 log_host: $target
 workers: $WORKERS
 targets: $TARGETS
+yaml_extra_path: $LIBCLOUD_YAML
 END
 
 if $SETUPNS ; then
