@@ -17,3 +17,5 @@ author: "{{ lookup('env', 'USER') }}"
 #paddles_branch: wip-run-name
 
 #pulpito_branch: master
+
+#libcloud_ssl_cert_file: /usr/share/pki/trust/anchors/SUSE_Trust_Root.crt.pem

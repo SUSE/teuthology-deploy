@@ -9,7 +9,9 @@
 - name: Start workers
   shell: |
     source virtualenv/bin/activate
-    export SSL_CERT_FILE=/usr/share/pki/trust/anchors/SUSE_Trust_Root.crt.pem
+    {% if libcloud_ssl_cert_file %}
+    export SSL_CERT_FILE={{ libcloud_ssl_cert_file }}
+    {% endif %}
     bash docs/_static/worker_start.sh {{ machine_type }} {{ workers }}
   args:
     chdir: /home/{{ teuthology_execution_user }}/src/teuthology_master
