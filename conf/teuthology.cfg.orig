@@ -12,6 +12,7 @@ author: "{{ lookup('env', 'USER') }}"
 
 #teuthology_branch: master
 #teuthology_branch: suse-upstream
+teuthology_branch: "{{ teuthology_git_ref | default('master') }}"
 
 #paddles_branch: master
 #paddles_branch: wip-run-name
