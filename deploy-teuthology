@@ -20,7 +20,7 @@ TEUTH_VARS=${TEUTH_VARS:-"teuthology-vars.yml"}
 TEUTH_IMAGE=${TEUTH_IMAGE:-"teuthology-opensuse-15.1-x86_64"}
 # use only with disable_root=false because of ansible issue with paddles and other roles
 # which do not allow use REMOTE_USER for ssh, or there it is overriden in the middle
-LOGIN_USER=root
+LOGIN_USER=${LOGIN_USER:-"root"}
 
 function yj () {
     python3 -c "import json, yaml, sys ; d = yaml.safe_load(sys.stdin) ; json.dump(d,sys.stdout, indent=2)"
@@ -157,6 +157,8 @@ log_host: $target
 workers: $WORKERS
 targets: $TARGETS
 yaml_extra_path: $LIBCLOUD_YAML
+ansible_ssh_user: $LOGIN_USER
+ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
 END
 
 if $SETUPNS ; then
