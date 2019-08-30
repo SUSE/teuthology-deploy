@@ -142,7 +142,8 @@ function make_dns_key() {
     local zone_name=${1:-"nbg.suse.de"}
     local keys_path=${2:-"$STATE_PATH"}
     echo "Create dnssec keys for $zone_name" > /dev/stderr
-    KEY_NAME=$(sudo dnssec-keygen -r /dev/urandom -a HMAC-MD5 -b  512 -n HOST $zone_name)
+    # we need to provide full path to dnssec-keygen, otherwise it requires sudo
+    KEY_NAME=$(/usr/sbin/dnssec-keygen -r /dev/urandom -a HMAC-MD5 -b  512 -n HOST $zone_name)
     sudo chown $USER: $KEY_NAME*
     mv $KEY_NAME.* $keys_path
     echo $KEY_NAME
