@@ -33,6 +33,12 @@ libcloud:
         search {{ lab_domain }}
         nameserver {{ nameserver_addr }}
         EOF
+    sudoer_user: &sudoer_user
+      |
+        cat > /etc/sudoers.d/teuthology-user << EOF
+        # User rules for teuthology
+        ubuntu ALL=(ALL) NOPASSWD:ALL
+        EOF
     manage_resolv_conf: &manage_resolv_conf
         manage_resolv_conf: true
         nameservers:
@@ -54,8 +60,9 @@ libcloud:
             - SuSEfirewall2 stop
           runcmd:
             - *resolv_conf
+            - *sudoer_user
             - zypper in -y git wget rsyslog || true
-            - zypper in -y lsb-release make gcc gcc-c++ ntpd || true
+            - zypper in -y lsb-release make gcc gcc-c++ ntp || true
             - |
               if ! grep '^server' /etc/ntp.conf ; then
                 for i in 0 1 2 3 ; do
@@ -70,14 +77,14 @@ libcloud:
       ssh_interface: 'private_ips'
       driver: openstack
       driver_args:  # driver args are passed directly to the libcloud driver
-        username: 'CHANGE_USERNAME'
-        password: 'CHANGE_PASSWORD'
         ex_force_auth_url: 'https://engcloud.prv.suse.net:5000/v2.0/tokens'
         ex_force_auth_version: '2.0_password'
         #ex_force_auth_url: 'https://engcloud.prv.suse.net:5000/v3/tokens'
         #ex_force_auth_version: '3.x_password'
+        ex_force_service_region: 'CustomRegion'
         #api_version: '2.1'
         ex_tenant_name: 'ses'
         #ex_domain_name: 'ldap_users'
         ex_domain_name: 'Default'
-        ex_force_service_region: 'CustomRegion'
+        username: 'CHANGE_USERNAME'
+        password: 'CHANGE_PASSWORD'
