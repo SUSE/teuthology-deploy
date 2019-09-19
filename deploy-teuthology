@@ -221,3 +221,8 @@ ANSIBLE_CONFIG=teuthology-ansible.cfg \
 fi # SETUPNS
 
 fi
+
+echo teuthology runner: ssh -i $TEUTH_IDENTITY $(cat $TEUTH_VARS | yj | jq -r .teuthology_scheduler_user)@$target
+echo teuthology worker: ssh -i $TEUTH_IDENTITY $(cat $TEUTH_VARS | yj | jq -r .teuthology_execution_user)@$target
+echo teuthology admin: ssh -i $TEUTH_IDENTITY $LOGIN_USER@$target
+
