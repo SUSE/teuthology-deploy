@@ -1,6 +1,7 @@
 use_shaman: true
 check_package_signatures: false
-suite_verify_ceph_hash: false
+# next is required to enable '--newest' teuthology-suite argument
+suite_verify_ceph_hash: true
 canonical_tags: true
 teuthology_path: "/home/{{ teuthology_execution_user }}/src/teuthology_master"
 ceph_git_url: "{{ ceph_repo }}"
