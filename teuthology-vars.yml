@@ -6,7 +6,9 @@ teuthology_rpm_repo:
     '15.1':
       - https://download.opensuse.org/repositories/filesystems:/ceph:/teuthology/openSUSE_Leap_15.1/
 paddles_address: http://127.0.0.1:8080
-pulpito_address: http://{{ ansible_hostname }}:8081
+#pulpito_address: http://{{ ansible_hostname }}:8081
+pulpito_address: http://{{ inventory_hostname }}:8081
+
 nsupdate_url: 'http://localhost:8888/update'
 nsupdate_web_port: '8888'
 #yaml_extra_path: "libcloud/{{ machine_type }}.cfg"
