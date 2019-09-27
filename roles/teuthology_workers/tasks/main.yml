@@ -27,3 +27,13 @@
 
     path: "/home/{{ teuthology_execution_user }}/.ssh/config"
   become_user: "{{ teuthology_execution_user }}"
+
+- name: Add SSL_CERT_FILE to .bashrc
+  blockinfile:
+    create: yes
+    block: |
+      export SSL_CERT_FILE={{ libcloud_ssl_cert_file }}
+
+    path: "/home/{{ teuthology_execution_user }}/.bashrc"
+  become_user: "{{ teuthology_execution_user }}"
+  when: libcloud_ssl_cert_file != ""
