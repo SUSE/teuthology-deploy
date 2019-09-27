@@ -1,7 +1,7 @@
 ## Deploy teuthology instance
 
 
-### Setup environment
+### Install prerequisites
 
 Install terraform from the page: https://www.terraform.io/downloads.html
 
@@ -12,21 +12,39 @@ curl -O https://releases.hashicorp.com/terraform/0.11.13/terraform_0.11.13_linux
 unzip terraform_0.11.13_linux_amd64.zip -d ~/bin/
 ```
 
+Get the source code and change directory into its root.
+
+```bash
+git clone https://github.com/kshtsk/teuthology-deploy
+cd teuthology-deploy
+```
+
 Setup virtual environment with python dependencies:
 
 ```bash
 virtualenv v
 . v/bin/activate
 pip install --upgrade pip
-pip install ansible python-openstackclient
+pip install ansible==2.8.4 python-openstackclient
 ```
 
 Clone ceph-cm-ansible of required fork and branch
 ```bash
 git clone https://github.com/suse/ceph-cm-ansible -b suse
 ```
+(Note: At moment of writing the SUSE ceph-cm-ansible is required to be used
+in order to setup teuthology on openSUSE based distro since his corresponding
+patches in 'suse' branch. The 'master' branch is supposed to be equivalent to
+the upstream one.)
 
-### Configure
+The user should have access to /usr/sbin/dnssec-keygen in order to make
+keys for nameserver, for example it can be found in system package 'bind-utils'
+in openSUSE distros.
+```bash
+sudo zypper in bind-utils
+```
+
+### Create deployment config
 
 Copy stub yaml files to configs
 ```bash
@@ -35,9 +53,14 @@ cp conf/teuthology.cfg.orig conf/teuthology.cfg
 cp libcloud/ovh.cfg.orig libcloud/ovh.cfg
 ```
 and modify correspondingly openstack credentials for libcloud
-and tweak teuthology config
+and tweak teuthology config.
 
-Add _ovh_, _sbg_, _nbg_, etc. data to `~/.config/openstack/clouds.yaml`
+(As an option you can use --conf argument to point to presaved teuthology.cfg
+explicitly.)
+
+Your system should have 'cloud' based access to your openstack and
+must have corresponding config to the once in 'terraform' directory.
+So, add _ovh_, _sbg_, _nbg_, etc. data to `~/.config/openstack/clouds.yaml`.
 
 ### Deploy teuthology cluster
 
