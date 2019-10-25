@@ -10,6 +10,8 @@ bootcmd:
 runcmd:
   - [ sh, -c, echo "========= Teuthology setup started =========" ]
   - |
+    netconfig update -f
+  - |
     for i in $(seq 1 30) ; do
         ping -q -c 1 download.suse.de && break
         sleep 10
