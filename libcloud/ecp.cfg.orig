@@ -55,6 +55,13 @@ libcloud:
             - zypper in -y lsb-release make gcc gcc-c++ chrony || true
             - systemctl enable chronyd.service || true
             - systemctl start chronyd.service || true
+        "opensuse-15.1":
+          runcmd:
+            - *resolv_conf
+            - zypper in -y git wget rsyslog || true
+            - zypper in -y lsb-release make gcc gcc-c++ chrony || true
+            - systemctl enable chronyd.service || true
+            - systemctl start chronyd.service || true
         "sle-12.3":
           bootcmd:
             - SuSEfirewall2 stop
