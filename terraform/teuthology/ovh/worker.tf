@@ -35,7 +35,7 @@ variable "os_image" {
 variable "os_flavor" {
   description = "Openstack Flavor Name"
   type = "string"
-  default = "s1-4"
+  default = "b2-7"
 }
 
 variable "target_id" {
