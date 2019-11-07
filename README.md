@@ -15,7 +15,7 @@ unzip terraform_0.11.13_linux_amd64.zip -d ~/bin/
 Get the source code and change directory into its root.
 
 ```bash
-git clone https://github.com/kshtsk/teuthology-deploy
+git clone https://github.com/SUSE/teuthology-deploy
 cd teuthology-deploy
 ```
 
@@ -30,7 +30,7 @@ pip install ansible==2.8.4 python-openstackclient
 
 Clone ceph-cm-ansible of required fork and branch
 ```bash
-git clone https://github.com/suse/ceph-cm-ansible -b suse
+git clone https://github.com/SUSE/ceph-cm-ansible -b suse
 ```
 (Note: At moment of writing the SUSE ceph-cm-ansible is required to be used
 in order to setup teuthology on openSUSE based distro since his corresponding
