@@ -3,7 +3,8 @@ check_package_signatures: false
 # next is required to enable '--newest' teuthology-suite argument
 suite_verify_ceph_hash: true
 canonical_tags: true
-teuthology_path: "/home/{{ teuthology_execution_user }}/src/teuthology_master"
+# comment the next line to enable --teuthology-branch
+#teuthology_path: "/home/{{ teuthology_execution_user }}/src/teuthology_master"
 ceph_git_url: "{{ ceph_repo }}"
 nsupdate_url: "http://localhost:{{ nsupdate_web_port }}/update"
 libcloud:
