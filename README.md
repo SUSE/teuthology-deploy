@@ -3,6 +3,12 @@
 
 ### Install prerequisites
 
+Install jq binary
+
+```bash
+zypper install -f jq
+```
+
 Install terraform from the page: https://www.terraform.io/downloads.html
 
 For example, if you are on SUSE based distro you could do next:
