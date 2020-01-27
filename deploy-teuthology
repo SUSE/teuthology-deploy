@@ -75,6 +75,12 @@ if $NODES ; then
 python dns.py $OS_CLOUD
 fi
 
+[[ -f $HOME/.ssh/id_rsa.pub ]] || {
+  echo "Please ensure your SSH public keys exists in id_rsa.pub"
+  exit 1
+}
+
+
 terraform init terraform/teuthology/$OS_CLOUD
 if $REBUILD || $CLEANUP ; then
 terraform destroy -force -state=$TERRAFORM_STATE
