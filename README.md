@@ -11,11 +11,12 @@ zypper install -f jq
 
 Install terraform from the page: https://www.terraform.io/downloads.html
 
+Version 0.12+ required
+
 For example, if you are on SUSE based distro you could do next:
 
 ```bash
-curl -O https://releases.hashicorp.com/terraform/0.11.13/terraform_0.11.13_linux_amd64.zip
-unzip terraform_0.11.13_linux_amd64.zip -d ~/bin/
+zypper install terraform
 ```
 
 Get the source code and change directory into its root.

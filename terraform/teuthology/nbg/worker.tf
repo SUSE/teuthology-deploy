@@ -46,7 +46,7 @@ resource "openstack_compute_instance_v2" "node" {
     key_pair = "storage-automation"
     user_data = "${file("${path.module}/../../../openstack/userdata-nbg.yaml")}"
     security_groups = ["default"]
-    metadata {
+    metadata = {
         demo = "metadata"
     }
     network {

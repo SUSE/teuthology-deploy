@@ -52,7 +52,7 @@ resource "openstack_compute_instance_v2" "node" {
     key_pair = "${var.os_keyname}"
     user_data = "${file("${path.module}/../../../openstack/userdata-ecp.yaml")}"
     security_groups = ["default", "sesci"]
-    metadata {
+    metadata = {
         demo = "metadata"
     }
     network {
