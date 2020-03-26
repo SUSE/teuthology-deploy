@@ -18,7 +18,7 @@ WORKERS=10
 TARGETS=20
 TEUTH_CONF=${TEUTH_CONF:-"conf/teuthology.cfg"}
 TEUTH_VARS=${TEUTH_VARS:-"teuthology-vars.yml"}
-TEUTH_IMAGE=${TEUTH_IMAGE:-"openSUSE-Leap-15.1-JeOS.x86_64-15.1.0-OpenStack-Cloud-Snapshot9.166"}
+TEUTH_IMAGE=${TEUTH_IMAGE:-"openSUSE-Leap-15.1-JeOS.x86_64-15.1.0-OpenStack-Cloud-Snapshot8.11.7"}
 # use only with disable_root=false because of ansible issue with paddles and other roles
 # which do not allow use REMOTE_USER for ssh, or there it is overriden in the middle
 LOGIN_USER=${LOGIN_USER:-"root"}
