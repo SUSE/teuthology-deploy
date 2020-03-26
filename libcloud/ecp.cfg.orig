@@ -87,14 +87,14 @@ libcloud:
       ssh_interface: 'private_ips'
       driver: openstack
       driver_args:  # driver args are passed directly to the libcloud driver
+        ex_domain_name: 'Default'
         ex_force_auth_url: 'https://engcloud.prv.suse.net:5000/v2.0/tokens'
         ex_force_auth_version: '2.0_password'
-        #ex_force_auth_url: 'https://engcloud.prv.suse.net:5000/v3/tokens'
+        #ex_domain_name: 'ldap_users'
+        #ex_force_auth_url: 'https://engcloud.prv.suse.net:5000/v3/auth/tokens'
         #ex_force_auth_version: '3.x_password'
         ex_force_service_region: 'CustomRegion'
         #api_version: '2.1'
         ex_tenant_name: 'ses'
-        #ex_domain_name: 'ldap_users'
-        ex_domain_name: 'Default'
         username: 'CHANGE_USERNAME'
         password: 'CHANGE_PASSWORD'
