@@ -34,6 +34,8 @@ libcloud:
         search {{ lab_domain }}
         nameserver {{ nameserver_addr }}
         EOF
+        sed -Ei 's/(NETCONFIG_DNS_STATIC_SEARCHLIST)=""/\1="{{ lab_domain }}"/' /etc/sysconfig/network/config
+        sed -Ei 's/(NETCONFIG_DNS_STATIC_SERVERS)=""/\1="{{ nameserver_addr }}"/' /etc/sysconfig/network/config
     sudoer_user: &sudoer_user
       |
         cat > /etc/sudoers.d/teuthology-user << EOF
@@ -49,13 +51,14 @@ libcloud:
   providers:
     ecp:  # This string is the 'machine type' value you will use when locking these nodes
       userdata:
-        "sle-15.1":
+        "sle-15.1": &sle15
           runcmd:
             - *resolv_conf
             - zypper in -y git wget rsyslog || true
             - zypper in -y lsb-release make gcc gcc-c++ chrony || true
             - systemctl enable chronyd.service || true
             - systemctl start chronyd.service || true
+        "sle-15.2": *sle15
         "opensuse-15.1":
           runcmd:
             - *resolv_conf
