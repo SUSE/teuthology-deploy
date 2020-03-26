@@ -5,6 +5,8 @@ teuthology_rpm_repo:
       - https://download.opensuse.org/repositories/filesystems:/ceph:/teuthology/openSUSE_Leap_42.3/
     '15.1':
       - https://download.opensuse.org/repositories/filesystems:/ceph:/teuthology/openSUSE_Leap_15.1/
+    '15.2':
+      - https://download.opensuse.org/repositories/filesystems:/ceph:/teuthology/openSUSE_Leap_15.2/
 paddles_address: http://127.0.0.1:8080
 #pulpito_address: http://{{ ansible_hostname }}:8081
 pulpito_address: http://{{ inventory_hostname }}:8081
