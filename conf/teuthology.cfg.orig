@@ -19,4 +19,7 @@ teuthology_branch: "{{ teuthology_git_ref | default('master') }}"
 
 #pulpito_branch: master
 
+# Uncomment 'libcloud_ssl_cert_file' for SUSE based openstack clouds,
+# like ECP etc.:
+#
 #libcloud_ssl_cert_file: /usr/share/pki/trust/anchors/SUSE_Trust_Root.crt.pem
