@@ -3,6 +3,11 @@
   tags:
     - packages
 
+- name: generate dnssec key
+  import_tasks: dnssec-keygen.yml
+  tags:
+    - dnssec-keygen
+
 - name: Enable and start ntpd
   service:
     name: ntpd
