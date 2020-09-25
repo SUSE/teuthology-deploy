@@ -5,6 +5,8 @@
 #    root:CHANGEME
 #  expire: False
 
+disable_root: false
+
 bootcmd:
   - rm /etc/resolv.conf
 runcmd:
