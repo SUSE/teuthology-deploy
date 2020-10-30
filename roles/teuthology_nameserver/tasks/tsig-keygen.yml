@@ -14,6 +14,9 @@
     module: copy 
     content: "{{ tsig_key }}"
     dest: "{{ secrets_path }}/{{ pubkey_name }}"
+  # specifically disable become to avoid sudo on localhost
+  vars:
+    ansible_become: false
 
 - name: Copy tsig key to remote host
   copy:
