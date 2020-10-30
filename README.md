@@ -102,3 +102,4 @@ export TEUTH_VARS=teuthology-foo.yml
 ./deploy-teuthology --cloud ovh --ns --rebuild
 ```
 
+> **NOTE**: Due to **HMAC-MD5** being depricated on Tumbleweed dnssec key generation was temporarily moved from `deploy-teuthology.sh` to `teuthology_nameserver` ansible role and `dnssec_keygen` task

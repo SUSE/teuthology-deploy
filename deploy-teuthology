@@ -139,18 +139,6 @@ fi
 
 if $REBUILD || $BUILD ; then
 
-function make_dns_key() {
-    local zone_name=${1:-"nbg.suse.de"}
-    local keys_path=${2:-"$STATE_PATH"}
-    echo "Create dnssec keys for $zone_name" > /dev/stderr
-    # we need to provide full path to dnssec-keygen, otherwise it requires sudo
-    KEY_NAME=$(/usr/sbin/dnssec-keygen -r /dev/urandom -a HMAC-MD5 -b  512 -n HOST $zone_name)
-    #sudo chown $USER: $KEY_NAME*
-    mv $KEY_NAME.* $keys_path
-    echo $KEY_NAME
-}
-
-
 cat > $STATE_PATH/teuthology_server.yml << END
 teuthology_name: $NAME
 teuthology_addr: $private_addr
@@ -173,21 +161,13 @@ fi
 
 if $SETUPNS ; then
 ZONE_DOMAIN=${OS_CLOUD}.suse.de
-DNSKEY_NAME=$(make_dns_key $ZONE_DOMAIN $PWD/secrets)
-PUBKEY_NAME=${DNSKEY_NAME}.key
-PRIKEY_NAME=${DNSKEY_NAME}.private
-ZONE_SECRET=$(cat $PWD/secrets/$PRIKEY_NAME | yj | jq -r .Key)
 cat >> $STATE_PATH/teuthology_server.yml << END
 #keys_dir: $STATE_PATH
 nsupdate_web_server: "$private_addr"
 lab_domain:  $ZONE_DOMAIN
 zone_name:   $ZONE_DOMAIN
 zone_domain: $ZONE_DOMAIN
-zone_secret: $ZONE_SECRET
-pubkey_name: $PUBKEY_NAME
-prikey_name: $PRIKEY_NAME
 END
-scp $sshopts $PWD/secrets/${DNSKEY_NAME}* $LOGIN_USER@$target:
 
 ANSIBLE_CONFIG=teuthology-ansible.cfg \
     ansible-playbook $VERBOSE \

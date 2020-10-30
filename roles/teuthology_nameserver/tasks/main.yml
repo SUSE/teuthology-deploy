@@ -3,6 +3,16 @@
   tags:
     - packages
 
+#- name: generate dnssec key
+#  import_tasks: dnssec-keygen.yml
+#  tags:
+#    - dnssec-keygen
+
+- name: Generate tsig key
+  import_tasks: tsig-keygen.yml
+  tags:
+    - tsig-keygen
+
 - name: Enable and start ntpd
   service:
     name: ntpd
@@ -19,22 +29,38 @@
 - name: printout {{ nslist }}
   debug: var=nslist
 
-- name: Check that named.conf.include exists
-  stat:
-    path: /etc/named.conf.include
-  register: named_conf_include
+## We cannot use named.conf.include directly anymore
+## because on opensuse it is generated automatically,
+## that is why we have to use NAMED_CONF_INCLUDE_FILES
+#
+#- name: Check that named.conf.include exists
+#  stat:
+#    path: /etc/named.conf.include
+#  register: named_conf_include
+#
+#- name: Create the file, if it doesnt exist already
+#  file:
+#    path: /etc/named.conf.include
+#    state: touch
+#  when: named_conf_include.stat.exists == False
+#
+#- name: add zone config to named.conf.include
+#  blockinfile:
+#    create: yes
+#    block: "{{ lookup('template', 'named.conf.j2') }}"
+#    path: '/etc/named.conf.include'
+#
+- name: Create named.conf for the domain
+  template:
+    src: "named.conf.j2"
+    dest: "/etc/named.d/{{ zone_name }}.conf"
 
-- name: Create the file, if it doesnt exist already
-  file:
-    path: /etc/named.conf.include
-    state: touch
-  when: named_conf_include.stat.exists == False
-
-- name: add zone config to named.conf.include
-  blockinfile:
-    create: yes
-    block: "{{ lookup('template', 'named.conf.j2') }}"
-    path: '/etc/named.conf.include'
+- name: Set NAMED_CONF_INCLUDE_FILES in /etc/sysconfig/named
+  replace:
+    backup: yes
+    path: /etc/sysconfig/named
+    regexp: '^(NAMED_CONF_INCLUDE_FILES)=.*$'
+    replace: '\1="{{ zone_name }}.conf"'
 
 - name: copy zone db file
   template:
@@ -62,11 +88,6 @@
     enabled: yes
   tags:
     - always
-#- name: Set localhost as nameserver
-#  blockinfile:
-#    block: "nameserver localhost"
-#    path: /etc/resolv.conf
-#
 - name: Append search
   replace:
     backup: yes
@@ -93,7 +114,9 @@
     state: present
     dest: /etc/resolv.conf
     insertafter: 'search'
-    line: 'nameserver localhost'
+    # We do not use 'localhost' because some nsupdate versions
+    # can fail with error 'parse of /etc/resolv.conf failed'
+    line: 'nameserver 127.0.0.1'
 
 - name: Add lab domain to DNS static search list
   replace:
@@ -121,14 +144,7 @@
         show
         send
 
-- name: Check nsupdate setup
-  shell: |
-          nsupdate -k {{ prikey_name }} -v /tmp/nsupdate-test-create.txt
-- name: Check dns
-  shell: |
-          host local.ddns.{{ lab_domain }}
-          ping -c 1 local.ddns
-- name: Delete dns recored
+- name: Delete dns record test script
   blockinfile:
     path: /tmp/nsupdate-test-delete.txt
     marker: "; {mark}"
@@ -140,4 +156,11 @@
         show
         send
 
+- name: Check nsupdate setup
+  shell: |
+          nsupdate -k {{ pubkey_name }} -v /tmp/nsupdate-test-create.txt
+- name: Check dns
+  shell: |
+          host local.ddns.{{ lab_domain }}
+          ping -c 1 local.ddns
 

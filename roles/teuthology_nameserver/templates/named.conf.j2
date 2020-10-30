@@ -1,7 +1,4 @@
-key "{{ zone_name }}." {
-  algorithm hmac-md5;
-  secret "{{ zone_secret }}";
-};
+{{ named_conf_key }}
 
 zone "{{ zone_name }}" {
         type master;
