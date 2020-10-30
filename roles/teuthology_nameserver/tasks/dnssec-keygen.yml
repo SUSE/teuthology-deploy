@@ -16,6 +16,14 @@
     prikey_name: "{{ dns_keygen.stdout }}.private"
     zone_secret: "{{ (prikey_out.content |  b64decode | from_yaml).Key }}"
 
+- name: Define named.conf key data
+  set_fact:
+    named_conf_key: |
+        key "{{ zone_name }}." {
+          algorithm hmac-md5;
+          secret "{{ zone_secret }}";
+        };
+
 - name: Fetch the keys to secrets local path
   fetch:
     src: "{{ ansible_env.HOME }}/{{ item }}"
