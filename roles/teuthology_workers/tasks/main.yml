@@ -14,6 +14,7 @@
     {% endif %}
     bash docs/_static/worker_start.sh {{ machine_type }} {{ workers }}
   args:
+    executable: /bin/bash
     chdir: /home/{{ teuthology_execution_user }}/src/teuthology_master
   become_user: "{{ teuthology_execution_user }}"
 
