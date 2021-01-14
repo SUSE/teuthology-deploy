@@ -20,6 +20,15 @@
     enabled: yes
   tags:
     - always
+  when: ansible_os_family == "Suse"
+
+- name: Enable and start ntp for Debian based distro
+  service:
+    name: ntp
+    state: started
+    enabled: yes
+  when: ansible_os_family == "Debian"
+
 - name: nameserver list from resolv.conf
   shell: |
           grep -E -v '^\s*\#' /etc/resolv.conf | grep nameserver | sed -E 's/^.*nameserver\s+([^[:space:]\#]+).*$/\1/g'
