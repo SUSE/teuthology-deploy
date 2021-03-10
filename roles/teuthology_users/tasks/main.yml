@@ -21,12 +21,11 @@
         - "{{ worker_pub_key }}"
     path: "/etc/teuthology.yaml"
 
-- name: Add your key to authorized
-  lineinfile:
-      create: yes
-      path: "/home/{{ item }}/.ssh/authorized_keys"
-      line: "{{ lookup(\"file\", \"{{ lookup('env', 'HOME') }}/.ssh/id_rsa.pub\") }}"
-      owner: "{{ item }}"
+- name: Add your key to authorized_keys
+  authorized_key:
+    user: '{{ item }}'
+    key: "{{ lookup(\"file\", \"{{ lookup('env', 'HOME') }}/.ssh/id_rsa.pub\") }}"
+    state: present
   with_items:
     - "{{ teuthology_execution_user }}"
     - "{{ teuthology_scheduler_user }}"
