@@ -41,17 +41,21 @@ libcloud:
           - "{{ nameserver_addr }}"
         searchdomains:
           - "{{ lab_domain }}"
-  providers:
-    ovh:  # This string is the 'machine type' value you will use when locking these nodes
+    userdata: &userdata
       userdata:
-        "sle-15.1":
+        "centos-8.1": &centos8
           runcmd:
-            - *ovh_fix_ifcfg
+            - *resolv_conf
+        "opensuse-15.1": &suse15
+          runcmd:
             - *resolv_conf
             - zypper in -y git wget rsyslog || true
             - zypper in -y lsb-release make gcc gcc-c++ chrony || true
             - systemctl enable chronyd.service || true
             - systemctl start chronyd.service || true
+        "opensuse-15.2": *suse15
+        "sle-15.1": *suse15
+        "sle-15.2": *suse15
         "sle-12.3":
           bootcmd:
             - SuSEfirewall2 stop
@@ -68,9 +72,8 @@ libcloud:
               fi
             - systemctl enable  ntpd.service
             - systemctl restart ntpd.service
-      driver: openstack
-      driver_args:  # driver args are passed directly to the libcloud driver
-        ex_force_service_region: 'SBG5'
+      driver_args: &driver_args # driver args are passed directly to the libcloud driver
+        #ex_force_service_region: 'SBG5'
         #ex_force_auth_url: 'https://auth.cloud.ovh.net/v2.0/tokens'
         #ex_force_auth_version: '2.0_password'
         ex_force_auth_url: 'https://auth.cloud.ovh.net/v3/auth/tokens'
@@ -78,12 +81,52 @@ libcloud:
         ex_tenant_name: 'CHANGE_ME'
         username: 'CHANGE_ME'
         password: 'CHANGE_ME'
+
+  providers:
+    # This string is the 'machine type' value you will use when locking these nodes
+    ovh:
+      userdata: *userdata
+      driver: openstack
+      driver_args:
+        ex_force_service_region: 'GRA5'
+        <<: *driver_args
+    bhs:
+      userdata: *userdata
+      driver: openstack
+      driver_args:
+        ex_force_service_region: 'BHS3'
+        <<: *driver_args
+    gra:
+      userdata: *userdata
+      driver: openstack
+      driver_args:
+        ex_force_service_region: 'GRA5'
+        <<: *driver_args
+    waw:
+      userdata: *userdata
+      driver: openstack
+      driver_args:
+        ex_force_service_region: 'WAW1'
+        <<: *driver_args
+    de:
+      userdata: *userdata
+      driver: openstack
+      driver_args:
+        ex_force_service_region: 'DE1'
+        <<: *driver_args
+    uk:
+      userdata: *userdata
+      driver: openstack
+      driver_args:
+        ex_force_service_region: 'UK1'
+        <<: *driver_args
+
 openstack:
   clone: git clone {{ teuthology_repo }}
-  user-data: teuthology/openstack/openstack-{os_type}-{os_version}-user-data.txt
-  ip: {{ teuthology_addr }}
-  nameserver: {{ nameserver_addr }}
-  selfname: {{ teuthology_name }}
+  user-data: "teuthology/openstack/openstack-{os_type}-{os_version}-user-data.txt"
+  ip: "{{ teuthology_addr }}"
+  nameserver: "{{ nameserver_addr }}"
+  selfname: "{{ teuthology_name }}"
   keypair: teuth-ci
   server_name: teuth-ci
   server_group: teuth-ci
