@@ -83,13 +83,20 @@ if len(sys.argv) > 1:
     cloud = sys.argv[1]
 net_map = {
         'ecp': 'sesci',
+        'ecn': 'fixed',
         'ovh': 'Ext-Net',
         'bhs': 'Ext-Net',
         'gra': 'Ext-Net',
         'sbg': 'Ext-Net',
+        'waw': 'Ext-Net',
+        'de': 'Ext-Net',
+        'uk': 'Ext-Net',
         'bhs3': 'Ext-Net',
         'sbg5': 'Ext-Net',
         'gra5': 'Ext-Net',
+        'waw1': 'Ext-Net',
+        'de1': 'Ext-Net',
+        'uk1': 'Ext-Net',
         }
 #make_ansible_files('Ext-Net', 'ovh')
 make_ansible_files(net_map[cloud], 'openstack')
